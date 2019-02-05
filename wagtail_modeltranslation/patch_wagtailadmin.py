@@ -141,7 +141,7 @@ class WagtailTranslator(object):
 
     def _patch_other_models(self, model):
         if hasattr(model, 'edit_handler'):
-            edit_handler = model.edit_handler
+            edit_handler = model.edit_handler.children
             for tab in edit_handler:
                 tab.children = self._patch_panels(tab.children)
         elif hasattr(model, 'panels'):
