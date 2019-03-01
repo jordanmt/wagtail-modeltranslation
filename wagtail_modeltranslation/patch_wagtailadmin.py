@@ -140,6 +140,9 @@ class WagtailTranslator(object):
                 setattr(model, 'save', LocalizedSaveDescriptor(model.save))
 
     def _patch_other_models(self, model):
+        
+        translation_registered_fields = translator.get_options_for_model(model).fields
+
         if hasattr(model, 'edit_handler'):
             edit_handler = model.edit_handler.children
             for tab in edit_handler:
@@ -148,11 +151,17 @@ class WagtailTranslator(object):
             model.panels = self._patch_panels(model.panels)
         else:
             panels = extract_panel_definitions_from_model_class(model)
-            translation_registered_fields = translator.get_options_for_model(model).fields
             panels = filter(lambda field: field.field_name not in translation_registered_fields, panels)
             edit_handler = ObjectList(panels)
 
             SNIPPET_EDIT_HANDLERS[model] = edit_handler.bind_to_model(model)
+
+        # OVERRIDE FIELDS
+        model_fields = model._meta.get_fields()
+        for field in model_fields:
+            if isinstance(field, StreamField) and field.name in translation_registered_fields:
+                descriptor = getattr(model, field.name)
+                _patch_stream_field_meaningful_value(descriptor)
 
     def _patch_panels(self, panels_list, related_model=None):
         """
