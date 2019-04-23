@@ -220,6 +220,13 @@ class WagtailTranslator(object):
                 localized_panel.widget = original_panel.widget
 
             translated_panels.append(localized_panel)
+            
+            # OVERRIDE FIELDS
+            model_fields = model._meta.get_fields()
+            for field in model_fields:
+                if isinstance(field, StreamField) and field.name in translation_registered_fields:
+                    descriptor = getattr(model, field.name)
+                    _patch_stream_field_meaningful_value(descriptor)
 
         return translated_panels
 
