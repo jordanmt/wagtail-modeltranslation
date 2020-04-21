@@ -237,10 +237,9 @@ class WagtailTranslator(object):
         localized_panel = panel_class(patched_children_panels)
 
         # Pass the original panel extra attributes to the localized
-        if hasattr(original_panel, 'classname'):
-            localized_panel.classname = original_panel.classname
-        if hasattr(original_panel, 'heading'):
-            localized_panel.heading = original_panel.heading
+        for key, value in original_panel.__dict__.items():
+            if key is not 'children':
+                setattr(localized_panel, key, value)
 
         return localized_panel
 
