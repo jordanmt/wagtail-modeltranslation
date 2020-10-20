@@ -140,7 +140,7 @@ class WagtailTranslator(object):
                 setattr(model, 'save', LocalizedSaveDescriptor(model.save))
 
     def _patch_other_models(self, model):
-        
+
         translation_registered_fields = translator.get_options_for_model(model).fields
 
         if hasattr(model, 'edit_handler'):
@@ -176,7 +176,7 @@ class WagtailTranslator(object):
                 patched_panels += self._patch_simple_panel(current_patching_model, panel)
             elif panel.__class__ in COMPOSED_PANEL_CLASSES:
                 patched_panels.append(self._patch_composed_panel(panel, related_model))
-            elif panel.__class__ == InlinePanel:
+            elif (panel.__class__ == InlinePanel or issubclass(panel.__class__, InlinePanel)):
                 patched_panels.append(self._patch_inline_panel(panel))
             else:
                 patched_panels.append(panel)
@@ -220,7 +220,7 @@ class WagtailTranslator(object):
                 localized_panel.widget = original_panel.widget
 
             translated_panels.append(localized_panel)
-            
+
             # OVERRIDE FIELDS
             model_fields = model._meta.get_fields()
             for field in model_fields:
@@ -238,7 +238,7 @@ class WagtailTranslator(object):
 
         # Pass the original panel extra attributes to the localized
         for key, value in original_panel.__dict__.items():
-            if key is not 'children':
+            if key != 'children':
                 setattr(localized_panel, key, value)
 
         return localized_panel
@@ -284,9 +284,9 @@ def _localized_set_url_path(page, parent, language):
         # for the current language. If the value for the current language is invalid we get the one
         # for the default fallback language
         slug = getattr(page, localized_slug_field, None) or \
-               getattr(page, default_localized_slug_field, None) or page.slug
+            getattr(page, default_localized_slug_field, None) or page.slug
         parent_url_path = getattr(parent, localized_url_path_field, None) or \
-                          getattr(parent, default_localized_url_path_field, None) or parent.url_path
+            getattr(parent, default_localized_url_path_field, None) or parent.url_path
 
         setattr(page, localized_url_path_field, parent_url_path + slug + '/')
 
